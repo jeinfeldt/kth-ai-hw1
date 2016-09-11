@@ -1,5 +1,8 @@
 package kth.ai16.hw1.objects;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+
 /**
  * Basic Matrix Class for probability (double) values
  * @author jöric
@@ -130,11 +133,12 @@ public class Matrix {
 	
 	// OBJECT FUNCTIONS
 	public String toString(){
+		NumberFormat formatter = new DecimalFormat("#0.0");
 		StringBuilder s = new StringBuilder();
 		s.append(this.rows + " ");
 		s.append(this.columns + " ");
 		for(double currentValue : toArray()){
-			s.append(currentValue + " ");
+			s.append(formatter.format(currentValue) + " ");
 		}
 		return s.toString();
 	}

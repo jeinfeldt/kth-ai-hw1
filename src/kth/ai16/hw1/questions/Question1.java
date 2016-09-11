@@ -7,7 +7,7 @@ import kth.ai16.hw1.objects.Matrix;
  * @author jöric
  *
  */
-public class q1 {
+public class Question1 {
 	
 	public static void main(String [] args){
 		double []piValues = {0.5, 0.5};
@@ -18,11 +18,11 @@ public class q1 {
 		Matrix b = new Matrix(2, 2, observationValues);
 		
 		System.out.println("Initial Row Vector Pi:");
-		System.out.println(pi);
+		System.out.println(pi.show());
 		System.out.println("Transition Matrix A:");
 		System.out.println(a.show());
 		System.out.println("Observation Matrix B:");
-		System.out.println(b);
+		System.out.println(b.show());
 	}
 
 }
