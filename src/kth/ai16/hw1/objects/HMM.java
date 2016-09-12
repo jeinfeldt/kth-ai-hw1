@@ -40,4 +40,36 @@ public class HMM {
 		}
 		return result;
 	}
+	
+	public double alphaPass(int[] observationSequence){
+		
+		Matrix alphaNow = new Matrix(pi.getRows(), pi.getColumns());
+		Matrix alphaNext = new Matrix(pi.getRows(), pi.getColumns());
+		
+		for(int i = 0; i < observationSequence.length; i++){
+			Matrix observProb = b.getColumn(observationSequence[i]);
+			
+			if(i == 0){
+				for(int j = 0; j < pi.getColumns(); j++){
+					alphaNext.set(0, i, pi.get(0, i) * observProb.get(0, i));
+				}
+			}
+			else{
+				Matrix calculateHelp = alphaNow.multiply(a);
+					for(int j = 0; j < pi.getColumns(); j++){
+						alphaNext.set(0, j, calculateHelp.get(0, j) * observProb.get(0, j));
+					}
+				}
+			alphaNow = alphaNext;
+		}
+		double result = 0.0;
+		
+		for(int i = 0; i < alphaNow.getColumns(); i++){
+			result += alphaNow.get(0, i);
+		}
+		return result;
+	}
+		
+		
 }
+

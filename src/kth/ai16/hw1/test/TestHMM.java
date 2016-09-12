@@ -1,5 +1,8 @@
 package kth.ai16.hw1.test;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+
 import kth.ai16.hw1.objects.HMM;
 import kth.ai16.hw1.objects.Matrix;
 import static org.junit.Assert.*;
@@ -21,6 +24,25 @@ public class TestHMM {
 		String myOutput = myHmm.predictObservation(-1).toString(); 
 		System.out.println(myOutput);
 		assertTrue(output.equals(myOutput));
+	}
+	
+	@Test
+	public void testObservationSequencePropapility(){
+		Matrix pi = new Matrix(1, 4, new double[]{1.0, 0, 0, 0}); 
+		Matrix a = new Matrix(4, 4, new double[]{0, 0.8, 0.1, 0.1, 0.1, 0, 0.8, 0.1, 0.1, 0.1, 0, 0.8, 0.8, 0.1, 0.1, 0});
+		Matrix b = new Matrix(4, 4, new double[]{0.9, 0.1, 0, 0, 0, 0.9, 0.1, 0, 0, 0, 0.9, 0.1, 0.1, 0, 0, 0.9});
+		int[] observations = {0,1,2,3,0,1,2,3};
+		double expectation = 0.090276;
+		HMM myHmm = new HMM(pi, a,  b);
+		double result = myHmm.alphaPass(observations);
+		System.out.println(result);
+		DecimalFormat df = new DecimalFormat("#.######");
+		df.setRoundingMode(RoundingMode.CEILING);
+		String d  = "" + result;
+		result = Double.parseDouble(d);
+		System.out.println(result);
+		
+		assertTrue(expectation == result);
 	}
 
 }

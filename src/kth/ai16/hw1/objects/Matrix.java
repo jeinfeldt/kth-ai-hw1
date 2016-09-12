@@ -134,6 +134,14 @@ public class Matrix {
 		return row;
 	}
 	
+	public Matrix getColumn(int col){
+		Matrix cols = new Matrix(1, rows);
+		for(int i = 0; i < rows; i++){
+			cols.set(0, i, values[i][col]);
+		}
+		return cols;
+	}
+	
 	
 	// GETTERS AND SETTERS
 	public int getRows(){
