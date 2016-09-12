@@ -37,4 +37,13 @@ public class TestMatrixOperations {
 		Matrix resultMatrix = new Matrix(2, 2, result);
 		assertTrue(m1.multiply(m2).equals(resultMatrix));
 	}
+	
+	@Test
+	public void testGetRow(){
+		Matrix expected = new Matrix(1,2,new double[]{1, 3});
+		Matrix m1 = new Matrix(2, 2, new double[]{2, 4, 1, 3});
+		Matrix row = m1.getRow(1);
+		assertTrue(expected.equals(row));
+		assertTrue(expected.toString().equals(row.toString()));
+	}
 }

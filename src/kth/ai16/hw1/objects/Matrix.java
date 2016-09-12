@@ -121,6 +121,19 @@ public class Matrix {
 		return s.toString();
 	}
 	
+	/**
+	 * Returns row specified by index
+	 * @param index of row
+	 * @return selected row
+	 */
+	public Matrix getRow(int index){
+		Matrix row = new Matrix(1, columns);
+		for(int i=0; i<columns; i++){
+			row.set(0, i, values[index][i]);
+		}
+		return row;
+	}
+	
 	
 	// GETTERS AND SETTERS
 	public int getRows(){
