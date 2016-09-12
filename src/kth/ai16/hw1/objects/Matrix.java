@@ -142,7 +142,6 @@ public class Matrix {
 		return cols;
 	}
 	
-	
 	// GETTERS AND SETTERS
 	public int getRows(){
 		return this.rows;
