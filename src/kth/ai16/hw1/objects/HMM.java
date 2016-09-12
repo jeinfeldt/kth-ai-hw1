@@ -1,5 +1,7 @@
 package kth.ai16.hw1.objects;
 
+import java.util.Arrays;
+
 /**
  * Represents a Hidden Markov Model with capability to
  * calculate probability for hidden states based on observations
@@ -76,20 +78,36 @@ public class HMM {
 	 * @return sequence of states
 	 */
 	public int [] decode(int [] observations){
+		// init calculation helpers
 		int [] states = new int[observations.length];
 		int possibleStates = a.getRows();
 		Matrix viterbi = new Matrix(possibleStates, observations.length);
-		// initialization step 
-		for(int state=0; state<possibleStates; state++){
-			double delta = b.get(state, observations[0])*pi.get(0, state);
-			viterbi.set(state, 0, delta);
+		int [][] indices = new int[possibleStates][observations.length];
+		for(int i=0; i<indices.length; i++){
+			Arrays.fill(indices[i], -1);
 		}
-		// recursion step
+		// viterbi initialization step 
+		Matrix deltas = pi.multiply(b.getColumn(observations[0]));
+		for(int state=0; state<possibleStates; state++){
+			viterbi.set(0, state, deltas.get(0, state));
+		}
+		// viterbi iteration step
 		for(int t=1; t<observations.length; t++){
 			for(int state=0; state<possibleStates; state++){
-				double delta = 0.0;
-				viterbi.set(state, t, delta);
+				Matrix lastT = viterbi.getRow(t-1); 
+				Matrix stateTrans = a.getColumn(state);
+				double obs = b.get(state, observations[t]) ;
+				Matrix tmp = (lastT.multiply(stateTrans)).multiply(obs);
+				viterbi.set(t, state, findMaxValue(tmp));
+				indices[t][state] = findMaxIndex(tmp);
 			}
+		}
+		// backtracking for state sequence
+		for(int i=possibleStates-1; i>=0; i--){
+			Matrix rowVector = viterbi.getRow(i);
+			int index = findMaxIndex(rowVector);
+			int state = indices[i][index];
+			states[states.length-1-i] = state;
 		}
 		return states;
 	}
@@ -101,7 +119,7 @@ public class HMM {
 	 */
 	private int findMaxIndex(Matrix rowVector){
 		double max = 0.0;
-		int maxIndex = 0;
+		int maxIndex = -1;
 		// TODO multiple max values
 		double [] values = rowVector.toArray();
 		for(int i=0; i<values.length; i++){
@@ -111,6 +129,17 @@ public class HMM {
 			}
 		}
 		return maxIndex;
+	}
+	
+	private double findMaxValue(Matrix rowVector){
+		double max = 0.0;
+		double [] values = rowVector.toArray();
+		for(int i=0; i<values.length; i++){
+			if(values[i]>max){
+				max = values[i];
+			}
+		}
+		return max;		
 	}
 }
 

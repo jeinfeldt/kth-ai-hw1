@@ -1,8 +1,5 @@
 package kth.ai16.hw1.objects;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-
 /**
  * Basic Matrix Class for probability (double) values
  * @author jöric
@@ -56,6 +53,10 @@ public class Matrix {
 	 */
 	public Matrix multiply(Matrix m2){
 		Matrix result = new Matrix(rows, m2.getColumns());
+		// special case for 2 row vectors
+		if(rows == 1 && m2.getRows() == 1){
+			return vectorMult(m2);
+		}
 		for(int k = 0; k < rows; k++)
 			for(int i=0; i<m2.getColumns(); i++){
 				double current = 0.0;
@@ -64,6 +65,25 @@ public class Matrix {
 				}
 				result.set(k, i, current);
 			}
+		return result;
+	}
+	
+	public Matrix multiply(double scalar){
+		double [] newValues = new double[rows*columns];
+		double [] currentValues = toArray();
+		for(int i=0; i<currentValues.length; i++){
+			newValues[i] = currentValues[i]*scalar;
+		}
+		return new Matrix(rows, columns, newValues);
+	}
+	
+	private Matrix vectorMult(Matrix m2){
+		Matrix result = new Matrix(rows, m2.getColumns());
+		double[] m1Values = toArray();
+		double[] m2Values = m2.toArray();
+		for(int i=0; i<columns; i++){
+			result.set(0, i, m1Values[i]*m2Values[i]);
+		}
 		return result;
 	}
 	
@@ -153,12 +173,11 @@ public class Matrix {
 	
 	// OBJECT FUNCTIONS
 	public String toString(){
-		NumberFormat formatter = new DecimalFormat("#0.0");
 		StringBuilder s = new StringBuilder();
 		s.append(this.rows + " ");
 		s.append(this.columns + " ");
 		for(double currentValue : toArray()){
-			s.append(formatter.format(currentValue) + " ");
+			s.append(currentValue + " ");
 		}
 		return s.toString();
 	}
