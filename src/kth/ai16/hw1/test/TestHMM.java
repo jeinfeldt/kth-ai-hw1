@@ -22,5 +22,15 @@ public class TestHMM {
 		System.out.println(myOutput);
 		assertTrue(output.equals(myOutput));
 	}
+	
+	@Test
+	public void testDecode(){
+		Matrix pi = new Matrix(1, 4, new double[]{1.0, 0.0, 0.0, 0.0}); 
+		Matrix a = new Matrix(4, 4, new double[]{0.0, 0.8, 0.1, 0.1, 0.1, 0.0, 0.8, 0.1, 0.1, 0.1, 0.0, 0.8, 0.8, 0.1, 0.1, 0.0});
+		Matrix b = new Matrix(4, 4, new double[]{0.9, 0.1, 0.0, 0.0, 0.0, 0.9, 0.1, 0.0, 0.0, 0.0, 0.9, 0.1, 0.1, 0.0, 0.0, 0.9});
+		HMM myHmm = new HMM(pi, a, b);
+		int [] observations = {1, 1, 2, 2};
+		myHmm.decode(observations);
+	}
 
 }
