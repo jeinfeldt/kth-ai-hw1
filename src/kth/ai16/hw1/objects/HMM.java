@@ -48,11 +48,13 @@ public class HMM {
 	 * @param observationSequence sequence of observations
 	 * @return double likelihood
 	 */
-	public double likelihood(int[] observationSequence){
+	public Matrix forwardPropability(int[] observationSequence){
 		
 		//Variables for current and next alpha
 		Matrix alphaNow = new Matrix(pi.getRows(), pi.getColumns());
 		Matrix alphaNext = new Matrix(pi.getRows(), pi.getColumns());
+		Matrix allAlphas = new Matrix(observationSequence.length, pi.getColumns());
+		
 		
 		//Iterating over all observations
 		for(int i = 0; i < observationSequence.length; i++){
@@ -61,24 +63,32 @@ public class HMM {
 			//special treatment for t = 0
 			if(i == 0){
 				for(int j = 0; j < pi.getColumns(); j++){
-					alphaNext.set(0, i, pi.get(0, i) * observProb.get(0, i));
+					alphaNext.set(i, j, pi.get(0, j) * observProb.get(i, j));
+					allAlphas.set(i, j, pi.get(0, j) * observProb.get(i, j));
 				}
 			}
 			else{
 				Matrix calculateHelp = alphaNow.multiply(a);
 					for(int j = 0; j < pi.getColumns(); j++){
 						alphaNext.set(0, j, calculateHelp.get(0, j) * observProb.get(0, j));
+						allAlphas.set(i, j, calculateHelp.get(0, j) * observProb.get(0, j));
 					}
 				}
 			alphaNow = alphaNext;
 		}
+		return allAlphas;
+	}	
+	
+	public double likelyhood(Matrix alpha){
+		
+		Matrix alphaNow = alpha.getRow(alpha.getRows() - 1);
 		double result = 0.0;
 		
 		for(int i = 0; i < alphaNow.getColumns(); i++){
 			result += alphaNow.get(0, i);
 		}
 		return result;
-	}		
+	}
 		
 	/**
 	 * Returns the most likely sequence of states based on given observation sequence

@@ -32,17 +32,17 @@ public class TestHMM {
 		Matrix a = new Matrix(4, 4, new double[]{0, 0.8, 0.1, 0.1, 0.1, 0, 0.8, 0.1, 0.1, 0.1, 0, 0.8, 0.8, 0.1, 0.1, 0});
 		Matrix b = new Matrix(4, 4, new double[]{0.9, 0.1, 0, 0, 0, 0.9, 0.1, 0, 0, 0, 0.9, 0.1, 0.1, 0, 0, 0.9});
 		int[] observations = {0,1,2,3,0,1,2,3};
+		
 		double expectation = 0.090276;
+		
 		HMM myHmm = new HMM(pi, a,  b);
+		
 		DecimalFormat df = new DecimalFormat("#.######");
 		df.setRoundingMode(RoundingMode.CEILING);
-		double result = (myHmm.likelihood(observations));
+		
+		double result = myHmm.likelyhood((myHmm.forwardPropability(observations)));
+		System.out.println(result);
 		System.out.println(df.format(result));
-		String s = df.format(result);
-		result = Double.parseDouble(s);
-		result = myHmm.likelihood(observations);
-		String d  = "" + result;
-		result = Double.parseDouble(d);
 		assertTrue(expectation == result);
 	}
 	
