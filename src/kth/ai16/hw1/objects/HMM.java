@@ -129,5 +129,34 @@ public class HMM {
 		}
 		return states;
 	}
+	
+	/** 
+	 * Calculates backward probability matrix based on squence of obervations
+	 * and possible states of the model with beta-pass (backward) algorithm
+	 * Beta(i,j): stores the probability of observing the rest of the sequence after time step i 
+	 * given that at time step i we are in state k in the HMM 
+	 * @param observationSequence
+	 * @param possibleStates
+	 * @return beta matrix
+	 */
+	private Matrix backwardProbability(int [] observationSequence, int possibleStates){
+		Matrix beta = new Matrix(observationSequence.length, possibleStates);
+		// initialisation
+		for(int i=0; i<possibleStates; i++){
+			beta.set(observationSequence.length-1, i, 1.0);
+		}
+		// iteration
+		for(int t=observationSequence.length-2; t>=0; t--){
+			for(int i=0; i<possibleStates; i++){
+				double currentBeta = 0.0;
+				for(int j=0; j<possibleStates; j++){
+					currentBeta = beta.get(t+1, j)*b.get(j, observationSequence[t+1])*a.get(i, j);
+				}
+				beta.set(t, i, currentBeta);
+			}
+		}
+		
+		return beta;
+	}
 }
 
