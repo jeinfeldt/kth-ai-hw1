@@ -158,5 +158,23 @@ public class HMM {
 		
 		return beta;
 	}
+	
+	private Matrix calculateDiGamma(int [] oSeq){
+		int possStates = a.getRows();
+		Matrix diGamma = new Matrix(oSeq.length-1, possStates);
+		Matrix alpha = forwardPropability(oSeq);
+		Matrix beta = backwardProbability(oSeq, possStates);
+		
+		for(int t=0; t<oSeq.length-1; t++){
+			for(int i=0; i<possStates; i++){
+				for(int j=0; j<possStates; j++){
+					double tmp = alpha.get(t, i)*a.get(i, j)*b.get(j, oSeq[t+1])*beta.get(t+1, j);
+					
+				}
+			}
+			
+		}
+		return diGamma;
+	}
 }
 
