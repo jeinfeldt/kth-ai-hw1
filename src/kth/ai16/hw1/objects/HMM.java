@@ -1,5 +1,7 @@
 package kth.ai16.hw1.objects;
 
+import java.util.Arrays;
+
 /**
  * Represents a Hidden Markov Model with capability to
  * calculate probability for hidden states based on observations
@@ -29,7 +31,7 @@ public class HMM {
 	 * @param state
 	 * @return
 	 */
-	public Matrix predictObservation(int state){
+	public Matrix next(int state){
 		Matrix result = null;
 		// initial computation
 		if(state == -1){
@@ -41,7 +43,12 @@ public class HMM {
 		return result;
 	}
 	
-	public double alphaPass(int[] observationSequence){
+	/**
+	 * Returns the likelihood of given observation sequence
+	 * @param observationSequence sequence of observations
+	 * @return double likelihood
+	 */
+	public double likelihood(int[] observationSequence){
 		
 		//Variables for current and next alpha
 		Matrix alphaNow = new Matrix(pi.getRows(), pi.getColumns());
@@ -75,45 +82,42 @@ public class HMM {
 		
 	/**
 	 * Returns the most likely sequence of states based on given observation sequence
-	 * @param observations sequence of observations
+	 * @param observationSequence sequence of observations
 	 * @return sequence of states
 	 */
-	public int [] decode(int [] observations){
-		int [] states = new int[observations.length];
+	public int [] decode(int [] observationSequence){
+		// init calculation helpers
+		int [] states = new int[observationSequence.length];
 		int possibleStates = a.getRows();
-		Matrix viterbi = new Matrix(possibleStates, observations.length);
-		// initialization step 
-		for(int state=0; state<possibleStates; state++){
-			double delta = b.get(state, observations[0])*pi.get(0, state);
-			viterbi.set(state, 0, delta);
+		Matrix viterbi = new Matrix(possibleStates, observationSequence.length);
+		int [][] indices = new int[possibleStates][observationSequence.length];
+		for(int i=0; i<indices.length; i++){
+			Arrays.fill(indices[i], -1);
 		}
-		// recursion step
-		for(int t=1; t<observations.length; t++){
+		// viterbi initialization step 
+		Matrix deltas = pi.multiply(b.getColumn(observationSequence[0]));
+		for(int state=0; state<possibleStates; state++){
+			viterbi.set(0, state, deltas.get(0, state));
+		}
+		// viterbi iteration step
+		for(int t=1; t<observationSequence.length; t++){
 			for(int state=0; state<possibleStates; state++){
-				double delta = 0.0;
-				viterbi.set(state, t, delta);
+				Matrix lastT = viterbi.getRow(t-1); 
+				Matrix stateTrans = a.getColumn(state);
+				double obs = b.get(state, observationSequence[t]) ;
+				Matrix tmp = (lastT.multiply(stateTrans)).multiply(obs);
+				viterbi.set(t, state, tmp.getMax());
+				indices[t][state] = tmp.getMaxIndex();
 			}
+		}
+		// backtracking for state sequence
+		Matrix rowVector = viterbi.getRow(possibleStates-1);
+		int index = rowVector.getMaxIndex();
+		states[states.length-1] = index;
+		for(int i=states.length-2; i>=0; i--){
+			states[i] = indices[i+1][states[i+1]];
 		}
 		return states;
-	}
-	
-	/**
-	 * Fetches max index value for given row vector
-	 * @param rowVector
-	 * @return max index
-	 */
-	private int findMaxIndex(Matrix rowVector){
-		double max = 0.0;
-		int maxIndex = 0;
-		// TODO multiple max values
-		double [] values = rowVector.toArray();
-		for(int i=0; i<values.length; i++){
-			if(values[i]>max){
-				max = values[i];
-				maxIndex = i;
-			}
-		}
-		return maxIndex;
 	}
 }
 

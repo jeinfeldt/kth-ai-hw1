@@ -46,4 +46,30 @@ public class TestMatrixOperations {
 		assertTrue(expected.equals(row));
 		assertTrue(expected.toString().equals(row.toString()));
 	}
+	
+	@Test
+	public void testGetColumn(){
+		Matrix expected = new Matrix(1,2,new double[]{2, 1});
+		Matrix m1 = new Matrix(2, 2, new double[]{2, 4, 1, 3});
+		Matrix column = m1.getColumn(0);
+		assertTrue(expected.equals(column));
+	}
+	
+	@Test
+	public void testRewVectorMultiply(){
+		Matrix v1 = new Matrix(1, 3, new double[]{1, 2, 3});
+		Matrix v2 = new Matrix(1, 3, new double[]{2, 2, 1});
+		Matrix expected = new Matrix(1, 3, new double[]{2, 4, 3});
+		Matrix actual = v1.multiply(v2);
+		assertTrue(expected.equals(actual));
+	}
+	
+	@Test 
+	public void testScalarMultiply(){
+		double scalar = 0.5;
+		Matrix v1 = new Matrix(1, 3, new double[]{4.0, 1.0, 5.0});
+		Matrix expected = new Matrix(1, 3, new double[]{2.0, 0.5, 2.5});
+		Matrix actual = v1.multiply(scalar);
+		assertTrue(expected.equals(actual));
+	}
 }

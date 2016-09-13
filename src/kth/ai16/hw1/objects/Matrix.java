@@ -1,8 +1,5 @@
 package kth.ai16.hw1.objects;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-
 /**
  * Basic Matrix Class for probability (double) values
  * @author jöric
@@ -56,6 +53,10 @@ public class Matrix {
 	 */
 	public Matrix multiply(Matrix m2){
 		Matrix result = new Matrix(rows, m2.getColumns());
+		// special case for 2 row vectors
+		if(rows == 1 && m2.getRows() == 1){
+			return vectorMult(m2);
+		}
 		for(int k = 0; k < rows; k++)
 			for(int i=0; i<m2.getColumns(); i++){
 				double current = 0.0;
@@ -64,6 +65,35 @@ public class Matrix {
 				}
 				result.set(k, i, current);
 			}
+		return result;
+	}
+	
+	/**
+	 * Multiplies vector with scalar
+	 * @param scalar - for multiplication
+	 * @return new row vector
+	 */
+	public Matrix multiply(double scalar){
+		double [] newValues = new double[rows*columns];
+		double [] currentValues = toArray();
+		for(int i=0; i<currentValues.length; i++){
+			newValues[i] = currentValues[i]*scalar;
+		}
+		return new Matrix(rows, columns, newValues);
+	}
+	
+	/**
+	 * Multiplies to row Vectors
+	 * @param m2 other row vector
+	 * @return new row vector
+	 */
+	private Matrix vectorMult(Matrix m2){
+		Matrix result = new Matrix(rows, m2.getColumns());
+		double[] m1Values = toArray();
+		double[] m2Values = m2.toArray();
+		for(int i=0; i<columns; i++){
+			result.set(0, i, m1Values[i]*m2Values[i]);
+		}
 		return result;
 	}
 	
@@ -134,12 +164,50 @@ public class Matrix {
 		return row;
 	}
 	
+	/**
+	 * Returns column specified by index
+	 * @param index of column
+	 * @return selected column
+	 */
 	public Matrix getColumn(int col){
 		Matrix cols = new Matrix(1, rows);
 		for(int i = 0; i < rows; i++){
 			cols.set(0, i, values[i][col]);
 		}
 		return cols;
+	}
+	
+	
+	/**
+	 * Get max index in a row vector
+	 * @return
+	 */
+	public int getMaxIndex(){
+		double max = 0.0;
+		int maxIndex = -1;
+		double [] values = toArray();
+		for(int i=0; i<values.length; i++){
+			if(values[i]>max){
+				max = values[i];
+				maxIndex = i;
+			}
+		}
+		return maxIndex;
+	}
+	
+	/**
+	 * Get max value in a rowvector
+	 * @return
+	 */
+	public double getMax(){
+		double max = 0.0;
+		double [] values = toArray();
+		for(int i=0; i<values.length; i++){
+			if(values[i]>max){
+				max = values[i];
+			}
+		}
+		return max;		
 	}
 	
 	// GETTERS AND SETTERS
@@ -153,12 +221,11 @@ public class Matrix {
 	
 	// OBJECT FUNCTIONS
 	public String toString(){
-		NumberFormat formatter = new DecimalFormat("#0.0");
 		StringBuilder s = new StringBuilder();
 		s.append(this.rows + " ");
 		s.append(this.columns + " ");
 		for(double currentValue : toArray()){
-			s.append(formatter.format(currentValue) + " ");
+			s.append(currentValue + " ");
 		}
 		return s.toString();
 	}
