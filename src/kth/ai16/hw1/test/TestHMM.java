@@ -34,13 +34,13 @@ public class TestHMM {
 		int[] observations = {0,1,2,3,0,1,2,3};
 		double expectation = 0.090276;
 		HMM myHmm = new HMM(pi, a,  b);
-		double result = myHmm.alphaPass(observations);
-		System.out.println(result);
 		DecimalFormat df = new DecimalFormat("#.######");
 		df.setRoundingMode(RoundingMode.CEILING);
-		String d  = "" + result;
-		result = Double.parseDouble(d);
-		System.out.println(result);
+		double result = (myHmm.alphaPass(observations));
+		System.out.println(df.format(result));
+		String s = df.format(result);
+		result = Double.parseDouble(s);
+		
 		assertTrue(expectation == result);
 	}
 	

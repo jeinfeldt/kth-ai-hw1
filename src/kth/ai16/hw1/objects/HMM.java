@@ -43,12 +43,15 @@ public class HMM {
 	
 	public double alphaPass(int[] observationSequence){
 		
+		//Variables for current and next alpha
 		Matrix alphaNow = new Matrix(pi.getRows(), pi.getColumns());
 		Matrix alphaNext = new Matrix(pi.getRows(), pi.getColumns());
 		
+		//Iterating over all observations
 		for(int i = 0; i < observationSequence.length; i++){
 			Matrix observProb = b.getColumn(observationSequence[i]);
 			
+			//special treatment for t = 0
 			if(i == 0){
 				for(int j = 0; j < pi.getColumns(); j++){
 					alphaNext.set(0, i, pi.get(0, i) * observProb.get(0, i));
