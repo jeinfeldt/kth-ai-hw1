@@ -68,6 +68,11 @@ public class Matrix {
 		return result;
 	}
 	
+	/**
+	 * Multiplies vector with scalar
+	 * @param scalar - for multiplication
+	 * @return new row vector
+	 */
 	public Matrix multiply(double scalar){
 		double [] newValues = new double[rows*columns];
 		double [] currentValues = toArray();
@@ -77,6 +82,11 @@ public class Matrix {
 		return new Matrix(rows, columns, newValues);
 	}
 	
+	/**
+	 * Multiplies to row Vectors
+	 * @param m2 other row vector
+	 * @return new row vector
+	 */
 	private Matrix vectorMult(Matrix m2){
 		Matrix result = new Matrix(rows, m2.getColumns());
 		double[] m1Values = toArray();
@@ -154,12 +164,50 @@ public class Matrix {
 		return row;
 	}
 	
+	/**
+	 * Returns column specified by index
+	 * @param index of column
+	 * @return selected column
+	 */
 	public Matrix getColumn(int col){
 		Matrix cols = new Matrix(1, rows);
 		for(int i = 0; i < rows; i++){
 			cols.set(0, i, values[i][col]);
 		}
 		return cols;
+	}
+	
+	
+	/**
+	 * Get max index in a row vector
+	 * @return
+	 */
+	public int getMaxIndex(){
+		double max = 0.0;
+		int maxIndex = -1;
+		double [] values = toArray();
+		for(int i=0; i<values.length; i++){
+			if(values[i]>max){
+				max = values[i];
+				maxIndex = i;
+			}
+		}
+		return maxIndex;
+	}
+	
+	/**
+	 * Get max value in a rowvector
+	 * @return
+	 */
+	public double getMax(){
+		double max = 0.0;
+		double [] values = toArray();
+		for(int i=0; i<values.length; i++){
+			if(values[i]>max){
+				max = values[i];
+			}
+		}
+		return max;		
 	}
 	
 	// GETTERS AND SETTERS

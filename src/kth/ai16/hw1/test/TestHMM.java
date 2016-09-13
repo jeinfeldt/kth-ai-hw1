@@ -21,26 +21,23 @@ public class TestHMM {
 		Matrix result = new Matrix(1,3, new double[]{0.3, 0.6, 0.1});
 		HMM myHmm = new HMM(pi, a,  b);
 		String output = result.toString();
-		String myOutput = myHmm.predictObservation(-1).toString(); 
-		System.out.println(myOutput);
+		String myOutput = myHmm.next(-1).toString(); 
 		assertTrue(output.equals(myOutput));
 	}
 	
 	@Test
-	public void testObservationSequencePropapility(){
+	public void testLikelihood(){
 		Matrix pi = new Matrix(1, 4, new double[]{1.0, 0, 0, 0}); 
 		Matrix a = new Matrix(4, 4, new double[]{0, 0.8, 0.1, 0.1, 0.1, 0, 0.8, 0.1, 0.1, 0.1, 0, 0.8, 0.8, 0.1, 0.1, 0});
 		Matrix b = new Matrix(4, 4, new double[]{0.9, 0.1, 0, 0, 0, 0.9, 0.1, 0, 0, 0, 0.9, 0.1, 0.1, 0, 0, 0.9});
 		int[] observations = {0,1,2,3,0,1,2,3};
 		double expectation = 0.090276;
 		HMM myHmm = new HMM(pi, a,  b);
-		double result = myHmm.alphaPass(observations);
-		System.out.println(result);
+		double result = myHmm.likelihood(observations);
 		DecimalFormat df = new DecimalFormat("#.######");
 		df.setRoundingMode(RoundingMode.CEILING);
 		String d  = "" + result;
 		result = Double.parseDouble(d);
-		System.out.println(result);
 		assertTrue(expectation == result);
 	}
 	
