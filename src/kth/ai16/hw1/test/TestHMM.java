@@ -40,7 +40,7 @@ public class TestHMM {
 		DecimalFormat df = new DecimalFormat("#.######");
 		df.setRoundingMode(RoundingMode.CEILING);
 		
-		double result = myHmm.likelyhood((myHmm.forwardPropability(observations)));
+		double result = myHmm.likelihood(observations);
 		System.out.println(result);
 		System.out.println(df.format(result));
 		assertTrue(expectation == result);

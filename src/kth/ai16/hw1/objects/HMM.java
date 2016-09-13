@@ -26,6 +26,48 @@ public class HMM {
 		b = observationMatrix;
 	}
 	
+	public void train(int [] oSeq){
+		int numStates = a.getRows();
+		Matrix alpha = forwardPropability(oSeq);
+		Matrix beta = backwardProbability(oSeq);
+		int T = oSeq.length;
+		
+		// calculate diGamma denominator
+		double diGammaDenom = 0.0;
+		for(int i=0; i<numStates; i++){
+			diGammaDenom += alpha.get(T-1, i);
+		}
+				
+		// reestimate transition matrix A
+		for(int i=0; i<numStates; i++){
+			for(int j=0; j<numStates; j++){
+				double num = 0.0;
+				double denom = 0.0;
+				for(int t=0; t<T-1; t++){
+					num += calculateDiGamma(t, i, j, alpha, beta, oSeq, diGammaDenom);
+					denom += calculateGamma(t, j, alpha, beta, oSeq, diGammaDenom, numStates);
+				}
+				a.set(i, j, num/denom);
+			}
+		}
+		// reestiamate transition matrix B
+		for(int j=0; j<numStates; j++){
+			for(int k=0; k<b.getColumns(); k++){
+				double num = 0.0;
+				double denom = 0.0;
+				for(int t=0; t<T-2; t++){
+					num += indicator(oSeq[t], k) * calculateGamma(t, j, alpha, beta, oSeq, diGammaDenom, numStates);
+					denom += calculateGamma(t, j, alpha, beta, oSeq, diGammaDenom, numStates);
+				}
+				b.set(j, k, num/denom);
+			}
+		}
+		// reestimate initial transition PI
+		for(int i=0; i<numStates; i++){
+			pi.set(0, i, calculateGamma(0, i, alpha, beta, oSeq, diGammaDenom, numStates));
+		}
+	}
+	
 	/**
 	 * Predicts next obervation matrix based on state
 	 * @param state
@@ -48,7 +90,7 @@ public class HMM {
 	 * @param observationSequence sequence of observations
 	 * @return double likelihood
 	 */
-	public Matrix forwardPropability(int[] observationSequence){
+	private Matrix forwardPropability(int[] observationSequence){
 		
 		//Variables for current and next alpha
 		Matrix alphaNow = new Matrix(pi.getRows(), pi.getColumns());
@@ -79,8 +121,8 @@ public class HMM {
 		return allAlphas;
 	}	
 	
-	public double likelyhood(Matrix alpha){
-		
+	public double likelihood(int [] oSeq){
+		Matrix alpha = forwardPropability(oSeq);
 		Matrix alphaNow = alpha.getRow(alpha.getRows() - 1);
 		double result = 0.0;
 		
@@ -89,7 +131,7 @@ public class HMM {
 		}
 		return result;
 	}
-		
+	
 	/**
 	 * Returns the most likely sequence of states based on given observation sequence
 	 * @param observationSequence sequence of observations
@@ -136,21 +178,22 @@ public class HMM {
 	 * Beta(i,j): stores the probability of observing the rest of the sequence after time step i 
 	 * given that at time step i we are in state k in the HMM 
 	 * @param observationSequence
-	 * @param possibleStates
+	 * @param numStates
 	 * @return beta matrix
 	 */
-	private Matrix backwardProbability(int [] observationSequence, int possibleStates){
-		Matrix beta = new Matrix(observationSequence.length, possibleStates);
+	private Matrix backwardProbability(int [] observationSequence){
+		int numStates = a.getRows();
+		Matrix beta = new Matrix(observationSequence.length-1, numStates);
 		// initialisation
-		for(int i=0; i<possibleStates; i++){
+		for(int i=0; i<numStates; i++){
 			beta.set(observationSequence.length-1, i, 1.0);
 		}
 		// iteration
 		for(int t=observationSequence.length-2; t>=0; t--){
-			for(int i=0; i<possibleStates; i++){
+			for(int i=0; i<numStates; i++){
 				double currentBeta = 0.0;
-				for(int j=0; j<possibleStates; j++){
-					currentBeta = beta.get(t+1, j)*b.get(j, observationSequence[t+1])*a.get(i, j);
+				for(int j=0; j<numStates; j++){
+					currentBeta += beta.get(t+1, j)*b.get(j, observationSequence[t+1])*a.get(i, j);
 				}
 				beta.set(t, i, currentBeta);
 			}
@@ -159,22 +202,52 @@ public class HMM {
 		return beta;
 	}
 	
-	private Matrix calculateDiGamma(int [] oSeq){
-		int possStates = a.getRows();
-		Matrix diGamma = new Matrix(oSeq.length-1, possStates);
-		Matrix alpha = forwardPropability(oSeq);
-		Matrix beta = backwardProbability(oSeq, possStates);
-		
-		for(int t=0; t<oSeq.length-1; t++){
-			for(int i=0; i<possStates; i++){
-				for(int j=0; j<possStates; j++){
-					double tmp = alpha.get(t, i)*a.get(i, j)*b.get(j, oSeq[t+1])*beta.get(t+1, j);
-					
-				}
-			}
-			
+	/**
+	 * 
+	 * @param o
+	 * @param k
+	 * @return
+	 */
+	private int indicator(int o, int k){
+		if(o == k){
+			return 1;
 		}
-		return diGamma;
+		return 0;
+	}
+	
+	/**
+	 * 
+	 * @param t
+	 * @param i
+	 * @param j
+	 * @param alpha
+	 * @param beta
+	 * @param oSeq
+	 * @param diGammaDenom
+	 * @return
+	 */
+	private double calculateDiGamma(int t, int i, int j, Matrix alpha, Matrix beta, int [] oSeq, double diGammaDenom){
+		double diGammaNum = alpha.get(t, i)*a.get(i, j)*b.get(j, oSeq[t+1])*beta.get(t+1, j);
+		return diGammaNum/diGammaDenom;
+	}
+	
+	/**
+	 * 
+	 * @param t
+	 * @param i
+	 * @param alpha
+	 * @param beta
+	 * @param oSeq
+	 * @param diGammaDenom
+	 * @param numStates
+	 * @return
+	 */
+	private double calculateGamma(int t, int i, Matrix alpha, Matrix beta, int [] oSeq, double diGammaDenom, int numStates){
+		double gamma = 0.0;
+		for(int k=0; k<numStates; k++){
+			gamma += calculateDiGamma(t, i, k, alpha, beta, oSeq, diGammaDenom);
+		}
+		return gamma;
 	}
 }
 
