@@ -85,7 +85,6 @@ public class HMM {
 	public int [] decode(int [] observationSequence){
 		// init calculation helpers
 		int [] states = new int[observationSequence.length];
-		Arrays.fill(states, -1);
 		int possibleStates = a.getRows();
 		Matrix viterbi = new Matrix(possibleStates, observationSequence.length);
 		int [][] indices = new int[possibleStates][observationSequence.length];
