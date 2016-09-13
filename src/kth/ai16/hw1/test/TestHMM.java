@@ -43,12 +43,20 @@ public class TestHMM {
 	
 	@Test
 	public void testDecode(){
+		// numbers from lesson
 		Matrix pi = new Matrix(1, 4, new double[]{0.5, 0.0, 0.0, 0.5}); 
 		Matrix a = new Matrix(4, 4, new double[]{0.6, 0.1, 0.1, 0.2, 0.0, 0.3, 0.2, 0.5, 0.8, 0.1, 0.0, 0.1, 0.2, 0.0, 0.1, 0.7});
 		Matrix b = new Matrix(4, 4, new double[]{0.6, 0.2, 0.1, 0.1, 0.1, 0.4, 0.1, 0.4, 0.0, 0.0, 0.7, 0.3, 0.0, 0.0, 0.1, 0.9});
-		HMM myHmm = new HMM(pi, a, b);
 		int [] observations = {2, 0, 3, 1};
-		myHmm.decode(observations);
+		HMM myHmm = new HMM(pi, a, b);
+	//	myHmm.decode(observations);
+		// numbers from kattis
+		pi = new Matrix(1, 4, new double[]{1.0, 0.0, 0.0, 0.0}); 
+		a = new Matrix(4, 4, new double[]{0.0, 0.8, 0.1, 0.1, 0.1, 0.0, 0.8, 0.1, 0.1, 0.1, 0.0, 0.8, 0.8, 0.1, 0.1, 0.0});
+		b = new Matrix(4, 4, new double[]{0.9, 0.1, 0.0, 0.0, 0.0, 0.9, 0.1, 0.0, 0.0, 0.0, 0.9, 0.1, 0.1, 0.0, 0.0, 0.9});
+		int [] observations2 = {1, 1, 2, 2};
+		myHmm = new HMM(pi, a, b);
+		myHmm.decode(observations2);
 	}
 
 }

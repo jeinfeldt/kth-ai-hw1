@@ -85,6 +85,7 @@ public class HMM {
 	public int [] decode(int [] observationSequence){
 		// init calculation helpers
 		int [] states = new int[observationSequence.length];
+		Arrays.fill(states, -1);
 		int possibleStates = a.getRows();
 		Matrix viterbi = new Matrix(possibleStates, observationSequence.length);
 		int [][] indices = new int[possibleStates][observationSequence.length];
@@ -108,11 +109,11 @@ public class HMM {
 			}
 		}
 		// backtracking for state sequence
-		for(int i=possibleStates-1; i>=0; i--){
-			Matrix rowVector = viterbi.getRow(i);
-			int index = rowVector.getMaxIndex();
-			int state = indices[i][index];
-			states[states.length-1-i] = state;
+		Matrix rowVector = viterbi.getRow(possibleStates-1);
+		int index = rowVector.getMaxIndex();
+		states[states.length-1] = index;
+		for(int i=states.length-2; i>=0; i--){
+			states[i] = indices[i+1][states[i+1]];
 		}
 		return states;
 	}
