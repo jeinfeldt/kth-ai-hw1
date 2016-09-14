@@ -25,7 +25,7 @@ public class HMM4 {
 		io.flush();
 		// output
 		HMM myHmm = new HMM(pi, a, b);
-		System.out.println(myHmm.likelihood(oSeq));
+		myHmm.train(oSeq, 15, Double.NEGATIVE_INFINITY);
 		io.close();
 	}
 	public static Matrix readMatrix(Kattio io){

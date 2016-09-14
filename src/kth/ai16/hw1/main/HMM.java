@@ -25,30 +25,10 @@ public class HMM {
 		a = transitionMatrix;
 		b = observationMatrix;
 	}
-	
-	
-	
-	public Matrix getPi() {
-		return pi;
-	}
 
-
-
-	public Matrix getA() {
-		return a;
-	}
-
-
-
-	public Matrix getB() {
-		return b;
-	}
-
-
-
-	public void train(int [] oSeq, int maxIters){
+	public void train(int [] oSeq, int maxIters, double oldLog){
 		
-		double oldLogProb = Double.NEGATIVE_INFINITY;
+		double oldLogProb = oldLog;
 		int iters = 0;
 		
 		int numStates = a.getRows();
@@ -71,7 +51,7 @@ public class HMM {
 					num += calculateDiGamma(t, i, j, alpha, beta, oSeq, diGammaDenom);
 					denom += calculateGamma(t, j, alpha, beta, oSeq, diGammaDenom, numStates);
 				}
-				a.set(i, j, num/denom);
+				a.set(i, j, divide(num,denom));
 			}
 		}
 		// reestiamate transition matrix B
@@ -83,7 +63,7 @@ public class HMM {
 					num += indicator(oSeq[t], k) * calculateGamma(t, j, alpha, beta, oSeq, diGammaDenom, numStates);
 					denom += calculateGamma(t, j, alpha, beta, oSeq, diGammaDenom, numStates);
 				}
-				b.set(j, k, num/denom);
+				b.set(j, k, divide(num,denom));
 			}
 		}
 		// reestimate initial transition PI
@@ -103,11 +83,8 @@ public class HMM {
 		
 		if(iters < maxIters && logProb > oldLogProb){
 			oldLogProb = logProb;
-			this.train(oSeq, maxIters-1);
+			train(oSeq, maxIters-1, oldLogProb);
 		}
-		
-		
-		
 	}
 	
 	/**
@@ -230,10 +207,15 @@ public class HMM {
 	 */
 	private Matrix backwardProbability(int [] oSeq){
 		int numStates = a.getRows();
-		Matrix beta = new Matrix(oSeq.length-1, numStates);
+		Matrix beta = new Matrix(oSeq.length, numStates);
 		// initialisation
 		for(int i=0; i<numStates; i++){
 			beta.set(oSeq.length-1, i, 1.0);
+		}
+		// normalize
+		for(int i=0; i<numStates; i++){
+			double current = beta.get(oSeq.length-1, i);
+			beta.set(oSeq.length-1, i, normalize(current, beta, oSeq.length-1));
 		}
 		// iteration
 		for(int t=oSeq.length-2; t>=0; t--){
@@ -244,8 +226,12 @@ public class HMM {
 				}
 				beta.set(t, i, currentBeta);
 			}
+			// normalize
+			for(int n=0; n<numStates; n++){
+				double current = beta.get(t, n);
+				beta.set(t, n, normalize(current, beta, t));
+			}
 		}
-		
 		return beta;
 	}
 	
@@ -292,7 +278,7 @@ public class HMM {
 		}else{
 			diGammaNum = alpha.get(t, i)*a.get(i, j)*b.get(j, oSeq[t+1])*beta.get(t+1, j);
 		}
-		return diGammaNum/diGammaDenom;
+		return divide(diGammaNum,diGammaDenom);
 	}
 	
 	/**
@@ -315,12 +301,19 @@ public class HMM {
 	}
 	
 	private double divide(double num, double denom){
-		if(denom == 0){
+		if(num == 0){
 			return 0;
 		}
 		else{
 			return num/denom;
 		}
 	}
+	private double normalize(double value, Matrix m, int t){
+		double denom = 0.0;
+		for(int i=0; i<m.getColumns(); i++){
+			denom += m.get(t, i);
+		}
+		return divide(value, denom);
+	}
+	
 }
-
