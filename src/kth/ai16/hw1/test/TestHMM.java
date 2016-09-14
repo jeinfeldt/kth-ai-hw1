@@ -34,6 +34,13 @@ public class TestHMM {
 		Matrix b = new Matrix(4, 4, new double[]{0.9, 0.1, 0, 0, 0, 0.9, 0.1, 0, 0, 0, 0.9, 0.1, 0.1, 0, 0, 0.9});
 		int[] observations = {0,1,2,3,0,1,2,3};
 		
+		System.out.println(a.show());
+		System.out.println();
+		System.out.println(b.show());
+		System.out.println();
+		System.out.println(pi.show());
+		System.out.println();
+		
 		double expectation = 0.090276;
 		
 		HMM myHmm = new HMM(pi, a,  b);
@@ -42,6 +49,7 @@ public class TestHMM {
 		df.setRoundingMode(RoundingMode.CEILING);
 		
 		double result = myHmm.likelihood(observations);
+		System.out.println(result);
 		assertTrue(expectation == result);
 	}
 	
