@@ -182,29 +182,41 @@ public class HMM {
 	 * and possible states of the model with beta-pass (backward) algorithm
 	 * Beta(i,j): stores the probability of observing the rest of the sequence after time step i 
 	 * given that at time step i we are in state k in the HMM 
-	 * @param observationSequence
+	 * @param oSeq
 	 * @param numStates
 	 * @return beta matrix
 	 */
-	private Matrix backwardProbability(int [] observationSequence){
+	private Matrix backwardProbability(int [] oSeq){
 		int numStates = a.getRows();
-		Matrix beta = new Matrix(observationSequence.length-1, numStates);
+		Matrix beta = new Matrix(oSeq.length-1, numStates);
 		// initialisation
 		for(int i=0; i<numStates; i++){
-			beta.set(observationSequence.length-1, i, 1.0);
+			beta.set(oSeq.length-1, i, 1.0);
 		}
 		// iteration
-		for(int t=observationSequence.length-2; t>=0; t--){
+		for(int t=oSeq.length-2; t>=0; t--){
 			for(int i=0; i<numStates; i++){
 				double currentBeta = 0.0;
 				for(int j=0; j<numStates; j++){
-					currentBeta += beta.get(t+1, j)*b.get(j, observationSequence[t+1])*a.get(i, j);
+					currentBeta += beta.get(t+1, j)*b.get(j, oSeq[t+1])*a.get(i, j);
 				}
 				beta.set(t, i, currentBeta);
 			}
 		}
 		
 		return beta;
+	}
+	
+	public Matrix getTransition(){
+		return this.a;
+	}
+	
+	public Matrix getEmission(){
+		return this.b;
+	}
+	
+	public Matrix getInitial(){
+		return this.pi;
 	}
 	
 	/**
