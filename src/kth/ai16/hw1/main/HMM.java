@@ -139,30 +139,35 @@ public class HMM {
 	 */
 	public int [] decode(int [] oSeq){
 		// init calculation helpers
-		int [] states = new int[oSeq.length];
 		int numStates = a.getRows();
-		Matrix viterbi = new Matrix(numStates, oSeq.length);
-		int [][] indices = new int[numStates][oSeq.length];
+		int [][] indices = new int[oSeq.length][numStates];
 		for(int i=0; i<indices.length; i++){
 			Arrays.fill(indices[i], -1);
 		}
+		Matrix viterbi = new Matrix(oSeq.length, numStates);
 		// viterbi initialization step 
-		Matrix deltas = pi.multiply(b.getColumn(oSeq[0]));
-		for(int state=0; state<numStates; state++){
-			viterbi.set(0, state, deltas.get(0, state));
+		for(int i=0; i<numStates; i++){
+			double delta = b.get(i, oSeq[0]) * pi.get(0, i);
+			viterbi.set(0, i, delta);
 		}
-		// viterbi iteration step
+		// update subsequent deltas
 		for(int t=1; t<oSeq.length; t++){
-			for(int state=0; state<numStates; state++){
-				Matrix lastT = viterbi.getRow(t-1); 
-				Matrix stateTrans = a.getColumn(state);
-				double obs = b.get(state, oSeq[t]) ;
-				Matrix tmp = (lastT.multiply(stateTrans)).multiply(obs);
-				viterbi.set(t, state, tmp.getMax());
-				indices[t][state] = tmp.getMaxIndex();
+			for(int i=0; i<numStates; i++){
+				double delta = 0.0;
+				int index = -1;
+				for(int j=0; j<numStates; j++){
+					double tmp = a.get(j, i)*viterbi.get(t-1, j)*b.get(i, oSeq[t]);
+					if(tmp > delta){
+						delta = tmp;
+						index = j;
+					}
+				}
+				viterbi.set(t, i, delta);
+				indices[t][i] = index;
 			}
 		}
 		// backtracking for state sequence
+		int [] states = new int[oSeq.length];
 		Matrix rowVector = viterbi.getRow(numStates-1);
 		int index = rowVector.getMaxIndex();
 		states[states.length-1] = index;
