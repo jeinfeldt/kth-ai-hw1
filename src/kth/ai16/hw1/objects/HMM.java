@@ -43,7 +43,7 @@ public class HMM {
 			for(int j=0; j<numStates; j++){
 				double num = 0.0;
 				double denom = 0.0;
-				for(int t=0; t<T-1; t++){
+				for(int t=0; t<T; t++){
 					num += calculateDiGamma(t, i, j, alpha, beta, oSeq, diGammaDenom);
 					denom += calculateGamma(t, j, alpha, beta, oSeq, diGammaDenom, numStates);
 				}
@@ -55,7 +55,7 @@ public class HMM {
 			for(int k=0; k<b.getColumns(); k++){
 				double num = 0.0;
 				double denom = 0.0;
-				for(int t=0; t<T-2; t++){
+				for(int t=0; t<T; t++){
 					num += indicator(oSeq[t], k) * calculateGamma(t, j, alpha, beta, oSeq, diGammaDenom, numStates);
 					denom += calculateGamma(t, j, alpha, beta, oSeq, diGammaDenom, numStates);
 				}
@@ -227,7 +227,12 @@ public class HMM {
 	 * @return
 	 */
 	private double calculateDiGamma(int t, int i, int j, Matrix alpha, Matrix beta, int [] oSeq, double diGammaDenom){
-		double diGammaNum = alpha.get(t, i)*a.get(i, j)*b.get(j, oSeq[t+1])*beta.get(t+1, j);
+		double diGammaNum = 0.0;
+		if(t == oSeq.length - 1){
+			diGammaNum = alpha.get(t, i) * a.get(i, j);
+		}else{
+			diGammaNum = alpha.get(t, i)*a.get(i, j)*b.get(j, oSeq[t+1])*beta.get(t+1, j);
+		}
 		return diGammaNum/diGammaDenom;
 	}
 	
@@ -248,6 +253,15 @@ public class HMM {
 			gamma += calculateDiGamma(t, i, k, alpha, beta, oSeq, diGammaDenom);
 		}
 		return gamma;
+	}
+	
+	private double divide(double num, double denom){
+		if(denom == 0){
+			return 0;
+		}
+		else{
+			return num/denom;
+		}
 	}
 }
 
