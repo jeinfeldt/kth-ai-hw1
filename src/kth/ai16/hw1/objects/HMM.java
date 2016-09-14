@@ -26,7 +26,31 @@ public class HMM {
 		b = observationMatrix;
 	}
 	
-	public void train(int [] oSeq){
+	
+	
+	public Matrix getPi() {
+		return pi;
+	}
+
+
+
+	public Matrix getA() {
+		return a;
+	}
+
+
+
+	public Matrix getB() {
+		return b;
+	}
+
+
+
+	public void train(int [] oSeq, int maxIters){
+		
+		double oldLogProb = Double.NEGATIVE_INFINITY;
+		int iters = 0;
+		
 		int numStates = a.getRows();
 		Matrix alpha = forwardPropability(oSeq);
 		Matrix beta = backwardProbability(oSeq);
@@ -66,6 +90,24 @@ public class HMM {
 		for(int i=0; i<numStates; i++){
 			pi.set(0, i, calculateGamma(0, i, alpha, beta, oSeq, diGammaDenom, numStates));
 		}
+		
+		double logProb = 0.0;
+		for (int t = 0; t < T; t++){
+			double alphaT = 0.0;
+			for (int n = 0; n < numStates; n++){
+				 alphaT += alpha.getRow(t).get(0, n);
+			}
+			logProb += Math.log(1/alphaT);
+		}
+		logProb = -logProb;
+		
+		if(iters < maxIters && logProb > oldLogProb){
+			oldLogProb = logProb;
+			this.train(oSeq, maxIters-1);
+		}
+		
+		
+		
 	}
 	
 	/**
