@@ -1,4 +1,4 @@
-package kth.ai16.hw1.objects;
+package kth.ai16.hw1.main;
 
 import java.util.Arrays;
 
@@ -176,36 +176,41 @@ public class HMM {
 	
 	/**
 	 * Returns the most likely sequence of states based on given observation sequence
-	 * @param observationSequence sequence of observations
+	 * @param oSeq sequence of observations
 	 * @return sequence of states
 	 */
-	public int [] decode(int [] observationSequence){
+	public int [] decode(int [] oSeq){
 		// init calculation helpers
-		int [] states = new int[observationSequence.length];
-		int possibleStates = a.getRows();
-		Matrix viterbi = new Matrix(possibleStates, observationSequence.length);
-		int [][] indices = new int[possibleStates][observationSequence.length];
+		int numStates = a.getRows();
+		int [][] indices = new int[oSeq.length][numStates];
 		for(int i=0; i<indices.length; i++){
 			Arrays.fill(indices[i], -1);
 		}
+		Matrix viterbi = new Matrix(oSeq.length, numStates);
 		// viterbi initialization step 
-		Matrix deltas = pi.multiply(b.getColumn(observationSequence[0]));
-		for(int state=0; state<possibleStates; state++){
-			viterbi.set(0, state, deltas.get(0, state));
+		for(int i=0; i<numStates; i++){
+			double delta = b.get(i, oSeq[0]) * pi.get(0, i);
+			viterbi.set(0, i, delta);
 		}
-		// viterbi iteration step
-		for(int t=1; t<observationSequence.length; t++){
-			for(int state=0; state<possibleStates; state++){
-				Matrix lastT = viterbi.getRow(t-1); 
-				Matrix stateTrans = a.getColumn(state);
-				double obs = b.get(state, observationSequence[t]) ;
-				Matrix tmp = (lastT.multiply(stateTrans)).multiply(obs);
-				viterbi.set(t, state, tmp.getMax());
-				indices[t][state] = tmp.getMaxIndex();
+		// update subsequent deltas
+		for(int t=1; t<oSeq.length; t++){
+			for(int i=0; i<numStates; i++){
+				double delta = 0.0;
+				int index = -1;
+				for(int j=0; j<numStates; j++){
+					double tmp = a.get(j, i)*viterbi.get(t-1, j)*b.get(i, oSeq[t]);
+					if(tmp > delta){
+						delta = tmp;
+						index = j;
+					}
+				}
+				viterbi.set(t, i, delta);
+				indices[t][i] = index;
 			}
 		}
 		// backtracking for state sequence
-		Matrix rowVector = viterbi.getRow(possibleStates-1);
+		int [] states = new int[oSeq.length];
+		Matrix rowVector = viterbi.getRow(numStates-1);
 		int index = rowVector.getMaxIndex();
 		states[states.length-1] = index;
 		for(int i=states.length-2; i>=0; i--){
@@ -219,29 +224,41 @@ public class HMM {
 	 * and possible states of the model with beta-pass (backward) algorithm
 	 * Beta(i,j): stores the probability of observing the rest of the sequence after time step i 
 	 * given that at time step i we are in state k in the HMM 
-	 * @param observationSequence
+	 * @param oSeq
 	 * @param numStates
 	 * @return beta matrix
 	 */
-	private Matrix backwardProbability(int [] observationSequence){
+	private Matrix backwardProbability(int [] oSeq){
 		int numStates = a.getRows();
-		Matrix beta = new Matrix(observationSequence.length-1, numStates);
+		Matrix beta = new Matrix(oSeq.length-1, numStates);
 		// initialisation
 		for(int i=0; i<numStates; i++){
-			beta.set(observationSequence.length-1, i, 1.0);
+			beta.set(oSeq.length-1, i, 1.0);
 		}
 		// iteration
-		for(int t=observationSequence.length-2; t>=0; t--){
+		for(int t=oSeq.length-2; t>=0; t--){
 			for(int i=0; i<numStates; i++){
 				double currentBeta = 0.0;
 				for(int j=0; j<numStates; j++){
-					currentBeta += beta.get(t+1, j)*b.get(j, observationSequence[t+1])*a.get(i, j);
+					currentBeta += beta.get(t+1, j)*b.get(j, oSeq[t+1])*a.get(i, j);
 				}
 				beta.set(t, i, currentBeta);
 			}
 		}
 		
 		return beta;
+	}
+	
+	public Matrix getTransition(){
+		return this.a;
+	}
+	
+	public Matrix getEmission(){
+		return this.b;
+	}
+	
+	public Matrix getInitial(){
+		return this.pi;
 	}
 	
 	/**
