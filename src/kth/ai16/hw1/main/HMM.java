@@ -141,22 +141,42 @@ public class HMM {
 		
 		
 		//Iterating over all observations
-		for(int i = 0; i < observationSequence.length; i++){
-			Matrix observProb = b.getColumn(observationSequence[i]);
+		for(int t = 0; t < observationSequence.length; t++){
+			Matrix observProb = b.getColumn(observationSequence[t]);
+			
+			double c0 = 0.0;
+			double ct = 0.0;
 			
 			//special treatment for t = 0
-			if(i == 0){
+			if(t == 0){
 				for(int j = 0; j < pi.getColumns(); j++){
-					alphaNext.set(i, j, pi.get(0, j) * observProb.get(i, j));
-					allAlphas.set(i, j, pi.get(0, j) * observProb.get(i, j));
+					alphaNext.set(t, j, pi.get(0, j) * observProb.get(t, j));
+					c0 += alphaNext.get(t, j);
 				}
+				
+				c0 = 1/c0;
+				
+				for(int j = 0; j < pi.getColumns(); j++){
+					alphaNext.set(t, j, alphaNext.get(t, j)*c0);
+					allAlphas.set(t, j, alphaNext.get(t, j));
+				}
+				
+
 			}
 			else{
 				Matrix calculateHelp = alphaNow.multiply(a);
 					for(int j = 0; j < pi.getColumns(); j++){
 						alphaNext.set(0, j, calculateHelp.get(0, j) * observProb.get(0, j));
-						allAlphas.set(i, j, calculateHelp.get(0, j) * observProb.get(0, j));
+						ct += alphaNext.get(0, j);
 					}
+					
+					ct = 1/ct;
+					
+					for(int j = 0; j <pi.getColumns(); j++){
+						alphaNext.set(0, j, alphaNext.get(0, j) * ct);
+						allAlphas.set(t, j, alphaNext.get(0, j));
+					}
+					
 				}
 			alphaNow = alphaNext;
 		}
