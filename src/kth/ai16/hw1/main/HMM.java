@@ -1,4 +1,4 @@
-package kth.ai16.hw1.objects;
+package kth.ai16.hw1.main;
 
 import java.util.Arrays;
 
@@ -134,36 +134,36 @@ public class HMM {
 	
 	/**
 	 * Returns the most likely sequence of states based on given observation sequence
-	 * @param observationSequence sequence of observations
+	 * @param oSeq sequence of observations
 	 * @return sequence of states
 	 */
-	public int [] decode(int [] observationSequence){
+	public int [] decode(int [] oSeq){
 		// init calculation helpers
-		int [] states = new int[observationSequence.length];
-		int possibleStates = a.getRows();
-		Matrix viterbi = new Matrix(possibleStates, observationSequence.length);
-		int [][] indices = new int[possibleStates][observationSequence.length];
+		int [] states = new int[oSeq.length];
+		int numStates = a.getRows();
+		Matrix viterbi = new Matrix(numStates, oSeq.length);
+		int [][] indices = new int[numStates][oSeq.length];
 		for(int i=0; i<indices.length; i++){
 			Arrays.fill(indices[i], -1);
 		}
 		// viterbi initialization step 
-		Matrix deltas = pi.multiply(b.getColumn(observationSequence[0]));
-		for(int state=0; state<possibleStates; state++){
+		Matrix deltas = pi.multiply(b.getColumn(oSeq[0]));
+		for(int state=0; state<numStates; state++){
 			viterbi.set(0, state, deltas.get(0, state));
 		}
 		// viterbi iteration step
-		for(int t=1; t<observationSequence.length; t++){
-			for(int state=0; state<possibleStates; state++){
+		for(int t=1; t<oSeq.length; t++){
+			for(int state=0; state<numStates; state++){
 				Matrix lastT = viterbi.getRow(t-1); 
 				Matrix stateTrans = a.getColumn(state);
-				double obs = b.get(state, observationSequence[t]) ;
+				double obs = b.get(state, oSeq[t]) ;
 				Matrix tmp = (lastT.multiply(stateTrans)).multiply(obs);
 				viterbi.set(t, state, tmp.getMax());
 				indices[t][state] = tmp.getMaxIndex();
 			}
 		}
 		// backtracking for state sequence
-		Matrix rowVector = viterbi.getRow(possibleStates-1);
+		Matrix rowVector = viterbi.getRow(numStates-1);
 		int index = rowVector.getMaxIndex();
 		states[states.length-1] = index;
 		for(int i=states.length-2; i>=0; i--){

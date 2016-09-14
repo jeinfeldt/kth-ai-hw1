@@ -4,8 +4,9 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 
-import kth.ai16.hw1.objects.HMM;
-import kth.ai16.hw1.objects.Matrix;
+import kth.ai16.hw1.main.HMM;
+import kth.ai16.hw1.main.Matrix;
+
 import static org.junit.Assert.*;
 
 import org.junit.Test;

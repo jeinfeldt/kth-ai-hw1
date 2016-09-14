@@ -2,7 +2,8 @@ package kth.ai16.hw1.test;
 
 import static org.junit.Assert.*;
 import org.junit.Test;
-import kth.ai16.hw1.objects.Matrix;
+
+import kth.ai16.hw1.main.Matrix;
 
 public class TestMatrixOperations {
 	

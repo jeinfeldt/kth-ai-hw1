@@ -1,6 +1,6 @@
 package kth.ai16.hw1.questions;
 
-import kth.ai16.hw1.objects.Matrix;
+import kth.ai16.hw1.main.Matrix;
 
 /**
  * Illustrates basic math operations with custom matrix, vector and HMM class 

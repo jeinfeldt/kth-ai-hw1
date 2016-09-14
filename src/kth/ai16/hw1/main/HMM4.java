@@ -1,7 +1,6 @@
 package kth.ai16.hw1.main;
 
-public class HMM3 {
-	
+public class HMM4 {
 	public static void main(String[] args) {
 		Kattio io = new Kattio(System.in, System.out);
 		Matrix a = null;
@@ -26,10 +25,7 @@ public class HMM3 {
 		io.flush();
 		// output
 		HMM myHmm = new HMM(pi, a, b);
-		int [] states = myHmm.decode(oSeq);
-		for(int i=0; i<states.length; i++){
-			System.out.print(states[i]+" ");
-		}
+		System.out.println(myHmm.likelihood(oSeq));
 		io.close();
 	}
 	public static Matrix readMatrix(Kattio io){

@@ -1,4 +1,4 @@
-package kth.ai16.hw1.objects;
+package kth.ai16.hw1.main;
 
 /**
  * Basic Matrix Class for probability (double) values
