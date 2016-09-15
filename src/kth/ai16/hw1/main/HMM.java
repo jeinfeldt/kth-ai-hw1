@@ -25,12 +25,109 @@ public class HMM {
 		a = transitionMatrix;
 		b = observationMatrix;
 	}
-
+	
+	/**
+	 * Predicts next obervation matrix based on state
+	 * @param state
+	 * @return newxt observation matrix
+	 */
+	public Matrix next(int state){
+		Matrix result = null;
+		// initial computation
+		if(state == -1){
+			result = pi.multiply(a).multiply(b);
+		} else {
+			Matrix row = a.getRow(state);
+			result = row.multiply(a).multiply(b);
+		}
+		return result;
+	}
+	
+	/**
+	 * Calculates probability of given observation sequence (with forward probablities)
+	 * @param oSeq - observation sequence
+	 * @return probability
+	 */
+	public double evaluateA(int [] oSeq){
+		Matrix alpha = forwardPropability(oSeq);
+		Matrix alphaNow = alpha.getRow(alpha.getRows() - 1);
+		double result = 0.0;
+		
+		for(int i = 0; i < alphaNow.getColumns(); i++){
+			result += alphaNow.get(0, i);
+		}
+		return result;
+	}
+	
+	/**
+	 * Calculates probability of given observation sequence (with backward probablities)
+	 * @param oSeq - observation sequence
+	 * @return probability
+	 */
+	public double evaluateB(int [] oSeq){
+		double result = 0.0;
+		int numStates = a.getColumns();
+		Matrix beta = backwardProbability(oSeq);
+		for(int i=0; i<numStates; i++){
+			result += pi.get(0, i)*beta.get(0, i)*b.get(i, oSeq[0]);
+		}
+		return result;
+	}
+	
+	/**
+	 * Returns the most likely sequence of states based on given observation sequence
+	 * @param oSeq sequence of observations
+	 * @return sequence of states
+	 */
+	public int [] decode(int [] oSeq){
+		// init calculation helpers
+		int numStates = a.getRows();
+		int [][] indices = new int[oSeq.length][numStates];
+		for(int i=0; i<indices.length; i++){
+			Arrays.fill(indices[i], -1);
+		}
+		Matrix viterbi = new Matrix(oSeq.length, numStates);
+		// viterbi initialization step 
+		for(int i=0; i<numStates; i++){
+			double delta = b.get(i, oSeq[0]) * pi.get(0, i);
+			viterbi.set(0, i, delta);
+		}
+		// update subsequent deltas
+		for(int t=1; t<oSeq.length; t++){
+			for(int i=0; i<numStates; i++){
+				double delta = 0.0;
+				int index = -1;
+				for(int j=0; j<numStates; j++){
+					double tmp = a.get(j, i)*viterbi.get(t-1, j)*b.get(i, oSeq[t]);
+					if(tmp > delta){
+						delta = tmp;
+						index = j;
+					}
+				}
+				viterbi.set(t, i, delta);
+				indices[t][i] = index;
+			}
+		}
+		// backtracking for state sequence
+		int [] states = new int[oSeq.length];
+		Matrix rowVector = viterbi.getRow(numStates-1);
+		int index = rowVector.getMaxIndex();
+		states[states.length-1] = index;
+		for(int i=states.length-2; i>=0; i--){
+			states[i] = indices[i+1][states[i+1]];
+		}
+		return states;
+	}
+	
+	/**
+	 * Train current HMM model and improve parameters.
+	 * @param oSeq Sequence of observations for training
+	 * @param maxIters Max number of iterations for training
+	 * @param oldLog Logarithmic threshold, initialise with negative infinity
+	 */
 	public void train(int [] oSeq, int maxIters, double oldLog){
 		
 		double oldLogProb = oldLog;
-		int iters = 0;
-		
 		int numStates = a.getRows();
 		Matrix alpha = forwardPropability(oSeq);
 		Matrix beta = backwardProbability(oSeq);
@@ -81,27 +178,23 @@ public class HMM {
 		}
 		logProb = -logProb;
 		
-		if(iters < maxIters && logProb > oldLogProb){
+		if(maxIters >= 0 && logProb > oldLogProb){
 			oldLogProb = logProb;
 			train(oSeq, maxIters-1, oldLogProb);
 		}
 	}
 	
-	/**
-	 * Predicts next obervation matrix based on state
-	 * @param state
-	 * @return
-	 */
-	public Matrix next(int state){
-		Matrix result = null;
-		// initial computation
-		if(state == -1){
-			result = pi.multiply(a).multiply(b);
-		} else {
-			Matrix row = a.getRow(state);
-			result = row.multiply(a).multiply(b);
-		}
-		return result;
+	
+	public Matrix getTransition(){
+		return this.a;
+	}
+	
+	public Matrix getEmission(){
+		return this.b;
+	}
+	
+	public Matrix getInitial(){
+		return this.pi;
 	}
 	
 	/**
@@ -109,112 +202,29 @@ public class HMM {
 	 * @param observationSequence sequence of observations
 	 * @return double likelihood
 	 */
-	private Matrix forwardPropability(int[] observationSequence){
-		
-		//Variables for current and next alpha
-		Matrix alphaNow = new Matrix(pi.getRows(), pi.getColumns());
-		Matrix alphaNext = new Matrix(pi.getRows(), pi.getColumns());
-		Matrix allAlphas = new Matrix(observationSequence.length, pi.getColumns());
-		
-		
-		//Iterating over all observations
-		for(int t = 0; t < observationSequence.length; t++){
-			Matrix observProb = b.getColumn(observationSequence[t]);
-			
-			double c0 = 0.0;
-			double ct = 0.0;
-			
-			//special treatment for t = 0
-			if(t == 0){
-				for(int j = 0; j < pi.getColumns(); j++){
-					alphaNext.set(t, j, pi.get(0, j) * observProb.get(t, j));
-					c0 += alphaNext.get(t, j);
-				}
-				
-				c0 = 1/c0;
-				
-				for(int j = 0; j < pi.getColumns(); j++){
-					alphaNext.set(t, j, alphaNext.get(t, j)*c0);
-					allAlphas.set(t, j, alphaNext.get(t, j));
-				}
-				
-
-			}
-			else{
-				Matrix calculateHelp = alphaNow.multiply(a);
-					for(int j = 0; j < pi.getColumns(); j++){
-						alphaNext.set(0, j, calculateHelp.get(0, j) * observProb.get(0, j));
-						ct += alphaNext.get(0, j);
-					}
-					
-					ct = 1/ct;
-					
-					for(int j = 0; j <pi.getColumns(); j++){
-						alphaNext.set(0, j, alphaNext.get(0, j) * ct);
-						allAlphas.set(t, j, alphaNext.get(0, j));
-					}
-					
-				}
-			alphaNow = alphaNext;
-		}
-		return allAlphas;
-	}	
-	
-	public double likelihood(int [] oSeq){
-		Matrix alpha = forwardPropability(oSeq);
-		Matrix alphaNow = alpha.getRow(alpha.getRows() - 1);
-		double result = 0.0;
-		
-		for(int i = 0; i < alphaNow.getColumns(); i++){
-			result += alphaNow.get(0, i);
-		}
-		return result;
-	}
-	
-	/**
-	 * Returns the most likely sequence of states based on given observation sequence
-	 * @param oSeq sequence of observations
-	 * @return sequence of states
-	 */
-	public int [] decode(int [] oSeq){
-		// init calculation helpers
-		int numStates = a.getRows();
-		int [][] indices = new int[oSeq.length][numStates];
-		for(int i=0; i<indices.length; i++){
-			Arrays.fill(indices[i], -1);
-		}
-		Matrix viterbi = new Matrix(oSeq.length, numStates);
-		// viterbi initialization step 
+	private Matrix forwardPropability(int[] oSeq){
+		int numStates = a.getColumns();
+		Matrix alpha = new Matrix(oSeq.length, numStates);
+		// initialisation
 		for(int i=0; i<numStates; i++){
-			double delta = b.get(i, oSeq[0]) * pi.get(0, i);
-			viterbi.set(0, i, delta);
+			double current = b.get(i, oSeq[0])*pi.get(0, i);
+			alpha.set(0, i, current);
 		}
-		// update subsequent deltas
+		
+		// subsequent update of alpha
 		for(int t=1; t<oSeq.length; t++){
 			for(int i=0; i<numStates; i++){
-				double delta = 0.0;
-				int index = -1;
+				double current = 0.0;
+				double margin = 0.0;
 				for(int j=0; j<numStates; j++){
-					double tmp = a.get(j, i)*viterbi.get(t-1, j)*b.get(i, oSeq[t]);
-					if(tmp > delta){
-						delta = tmp;
-						index = j;
-					}
+					margin += a.get(j, i)*alpha.get(t-1, j);
 				}
-				viterbi.set(t, i, delta);
-				indices[t][i] = index;
+				current = b.get(i, oSeq[t])*margin;
+				alpha.set(t, i, current);
 			}
 		}
-		// backtracking for state sequence
-		int [] states = new int[oSeq.length];
-		Matrix rowVector = viterbi.getRow(numStates-1);
-		int index = rowVector.getMaxIndex();
-		states[states.length-1] = index;
-		for(int i=states.length-2; i>=0; i--){
-			states[i] = indices[i+1][states[i+1]];
-		}
-		return states;
-	}
+		return alpha;
+	}	
 	
 	/** 
 	 * Calculates backward probability matrix based on squence of obervations
@@ -232,11 +242,6 @@ public class HMM {
 		for(int i=0; i<numStates; i++){
 			beta.set(oSeq.length-1, i, 1.0);
 		}
-		// normalize
-		for(int i=0; i<numStates; i++){
-			double current = beta.get(oSeq.length-1, i);
-			beta.set(oSeq.length-1, i, normalize(current, beta, oSeq.length-1));
-		}
 		// iteration
 		for(int t=oSeq.length-2; t>=0; t--){
 			for(int i=0; i<numStates; i++){
@@ -246,25 +251,8 @@ public class HMM {
 				}
 				beta.set(t, i, currentBeta);
 			}
-			// normalize
-			for(int n=0; n<numStates; n++){
-				double current = beta.get(t, n);
-				beta.set(t, n, normalize(current, beta, t));
-			}
 		}
 		return beta;
-	}
-	
-	public Matrix getTransition(){
-		return this.a;
-	}
-	
-	public Matrix getEmission(){
-		return this.b;
-	}
-	
-	public Matrix getInitial(){
-		return this.pi;
 	}
 	
 	/**
@@ -328,12 +316,4 @@ public class HMM {
 			return num/denom;
 		}
 	}
-	private double normalize(double value, Matrix m, int t){
-		double denom = 0.0;
-		for(int i=0; i<m.getColumns(); i++){
-			denom += m.get(t, i);
-		}
-		return divide(value, denom);
-	}
-	
 }
