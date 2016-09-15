@@ -13,6 +13,7 @@ public class HMM {
 	private Matrix pi;
 	private Matrix a;
 	private Matrix b;
+	private double[] scaleValues;
 	
 	/**
 	 * 
@@ -56,7 +57,12 @@ public class HMM {
 		for(int i = 0; i < alphaNow.getColumns(); i++){
 			result += alphaNow.get(0, i);
 		}
-		return result;
+		
+		double factor = 1.0;
+		for(int i = 0; i < scaleValues.length; i++){
+			 factor *= scaleValues[i];
+		}
+		return result/factor;
 	}
 	
 	/**
@@ -71,7 +77,12 @@ public class HMM {
 		for(int i=0; i<numStates; i++){
 			result += pi.get(0, i)*beta.get(0, i)*b.get(i, oSeq[0]);
 		}
-		return result;
+		
+		double factor = 1.0;
+		for(int i = 0; i < scaleValues.length; i++){
+			 factor *= scaleValues[i];
+		}
+		return result/factor;
 	}
 	
 	/**
@@ -210,14 +221,22 @@ public class HMM {
 	private Matrix forwardPropability(int[] oSeq){
 		int numStates = a.getColumns();
 		Matrix alpha = new Matrix(oSeq.length, numStates);
+		double scale = 0.0;
 		// initialisation
 		for(int i=0; i<numStates; i++){
 			double current = b.get(i, oSeq[0])*pi.get(0, i);
+			scale += current;
 			alpha.set(0, i, current);
 		}
+		// normalisation
+		for(int i=0; i<numStates; i++){
+			alpha.set(0, i, alpha.get(0, i)/scale);
+		}
+		scaleValues[0] = scale; 
 		
 		// subsequent update of alpha
 		for(int t=1; t<oSeq.length; t++){
+			scale = 0.0;
 			for(int i=0; i<numStates; i++){
 				double current = 0.0;
 				double margin = 0.0;
@@ -226,7 +245,12 @@ public class HMM {
 				}
 				current = b.get(i, oSeq[t])*margin;
 				alpha.set(t, i, current);
+				scale += current;
 			}
+			for (int i = 0; i <numStates; i++){
+				alpha.set(t, i, alpha.get(t, i)/scale);
+			}
+			scaleValues[t] = scale;
 		}
 		return alpha;
 	}	
@@ -241,11 +265,14 @@ public class HMM {
 	 * @return beta matrix
 	 */
 	private Matrix backwardProbability(int [] oSeq){
+		if(scaleValues == null){
+			forwardPropability(oSeq);
+		}
 		int numStates = a.getRows();
 		Matrix beta = new Matrix(oSeq.length, numStates);
 		// initialisation
 		for(int i=0; i<numStates; i++){
-			beta.set(oSeq.length-1, i, 1.0);
+			beta.set(oSeq.length-1, i, 1.0/scaleValues[scaleValues.length-1]);
 		}
 		// iteration
 		for(int t=oSeq.length-2; t>=0; t--){
@@ -254,7 +281,7 @@ public class HMM {
 				for(int j=0; j<numStates; j++){
 					currentBeta += beta.get(t+1, j)*b.get(j, oSeq[t+1])*a.get(i, j);
 				}
-				beta.set(t, i, currentBeta);
+				beta.set(t, i, currentBeta/scaleValues[t]);
 			}
 		}
 		return beta;
