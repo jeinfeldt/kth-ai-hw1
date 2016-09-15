@@ -98,8 +98,8 @@ public class HMM {
 		for(int i=0; i<indices.length; i++){
 			Arrays.fill(indices[i], -1);
 		}
-		Matrix viterbi = new Matrix(oSeq.length, numStates);
 		// viterbi initialization step 
+		Matrix viterbi = new Matrix(oSeq.length, numStates);
 		for(int i=0; i<numStates; i++){
 			double delta = b.get(i, oSeq[0]) * pi.get(0, i);
 			viterbi.set(0, i, delta);
@@ -178,9 +178,11 @@ public class HMM {
 		for(int i=0; i<numStates; i++){
 			pi.set(0, i, calculateGamma(0, i, alpha, beta, oSeq, diGammaDenom, numStates));
 		}
+		
+		// evaluate next iteration
 		double logProb = 0.0;
 		for (int t = 0; t < T; t++){
-			logProb += Math.log(1/scaleValues[t]);
+			logProb += Math.log(1.0/scaleValues[t]);
 		}
 		logProb = -logProb;
 		if(maxIters >= 0 && logProb > oldLogProb){
