@@ -35,7 +35,7 @@ public class TestHMM {
 		HMM myHmm = new HMM(pi, a,  b);
 		double resultA = myHmm.evaluateA(observations);
 		double resultB = myHmm.evaluateB(observations);
-		assertTrue(resultA == resultB);
+		assertTrue(Math.round(resultA*1000000)/1000000.0 == Math.round(resultB*1000000)/1000000.0);
 		assertTrue(expectation == Math.round(resultA*1000000)/1000000.0);
 		assertTrue(expectation == Math.round(resultB*1000000)/1000000.0);
 	}

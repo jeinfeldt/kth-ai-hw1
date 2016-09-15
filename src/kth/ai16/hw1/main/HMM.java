@@ -62,7 +62,7 @@ public class HMM {
 		for(int i = 0; i < scaleValues.length; i++){
 			 factor *= scaleValues[i];
 		}
-		return result/factor;
+		return result*factor;
 	}
 	
 	/**
@@ -82,7 +82,7 @@ public class HMM {
 		for(int i = 0; i < scaleValues.length; i++){
 			 factor *= scaleValues[i];
 		}
-		return result/factor;
+		return result*factor;
 	}
 	
 	/**
@@ -178,24 +178,13 @@ public class HMM {
 		for(int i=0; i<numStates; i++){
 			pi.set(0, i, calculateGamma(0, i, alpha, beta, oSeq, diGammaDenom, numStates));
 		}
-		
-		/*
-		double logProb = 0.0;
+		double logProb = 1.0;
 		for (int t = 0; t < T; t++){
-			double alphaT = 0.0;
-			for (int n = 0; n < numStates; n++){
-				 alphaT += alpha.getRow(t).get(0, n);
-			}
-			logProb += Math.log(1/alphaT);
+			logProb += Math.log(1/scaleValues[t]);
 		}
 		logProb = -logProb;
-		
 		if(maxIters >= 0 && logProb > oldLogProb){
 			oldLogProb = logProb;
-			train(oSeq, maxIters-1, oldLogProb);
-		}
-		*/
-		if(maxIters >= 0){
 			train(oSeq, maxIters-1, oldLogProb);
 		}
 	}
@@ -221,6 +210,7 @@ public class HMM {
 	private Matrix forwardPropability(int[] oSeq){
 		int numStates = a.getColumns();
 		Matrix alpha = new Matrix(oSeq.length, numStates);
+		scaleValues = new double[oSeq.length]; 
 		double scale = 0.0;
 		// initialisation
 		for(int i=0; i<numStates; i++){
