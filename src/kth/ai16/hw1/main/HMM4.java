@@ -25,7 +25,7 @@ public class HMM4 {
 		io.flush();
 		// output
 		HMM myHmm = new HMM(pi, a, b);
-		myHmm.train(oSeq, 415, Double.NEGATIVE_INFINITY);
+		myHmm.train(oSeq, 299, Double.NEGATIVE_INFINITY);
 		Matrix transition = myHmm.getTransition();
 		Matrix emission = myHmm.getEmission();
 		System.err.println("Transition");

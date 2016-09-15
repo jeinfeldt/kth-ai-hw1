@@ -178,7 +178,7 @@ public class HMM {
 		for(int i=0; i<numStates; i++){
 			pi.set(0, i, calculateGamma(0, i, alpha, beta, oSeq, diGammaDenom, numStates));
 		}
-		double logProb = 1.0;
+		double logProb = 0.0;
 		for (int t = 0; t < T; t++){
 			logProb += Math.log(1/scaleValues[t]);
 		}
