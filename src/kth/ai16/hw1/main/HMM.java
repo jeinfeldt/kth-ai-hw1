@@ -146,7 +146,7 @@ public class HMM {
 				double denom = 0.0;
 				for(int t=0; t<T; t++){
 					num += calculateDiGamma(t, i, j, alpha, beta, oSeq, diGammaDenom);
-					denom += calculateGamma(t, j, alpha, beta, oSeq, diGammaDenom, numStates);
+					denom += calculateGamma(t, i, alpha, beta, oSeq, diGammaDenom, numStates);
 				}
 				a.set(i, j, divide(num,denom));
 			}
@@ -168,6 +168,7 @@ public class HMM {
 			pi.set(0, i, calculateGamma(0, i, alpha, beta, oSeq, diGammaDenom, numStates));
 		}
 		
+		/*
 		double logProb = 0.0;
 		for (int t = 0; t < T; t++){
 			double alphaT = 0.0;
@@ -180,6 +181,10 @@ public class HMM {
 		
 		if(maxIters >= 0 && logProb > oldLogProb){
 			oldLogProb = logProb;
+			train(oSeq, maxIters-1, oldLogProb);
+		}
+		*/
+		if(maxIters >= 0){
 			train(oSeq, maxIters-1, oldLogProb);
 		}
 	}
@@ -302,8 +307,8 @@ public class HMM {
 	 */
 	private double calculateGamma(int t, int i, Matrix alpha, Matrix beta, int [] oSeq, double diGammaDenom, int numStates){
 		double gamma = 0.0;
-		for(int k=0; k<numStates; k++){
-			gamma += calculateDiGamma(t, i, k, alpha, beta, oSeq, diGammaDenom);
+		for(int j=0; j<numStates; j++){
+			gamma += calculateDiGamma(t, i, j, alpha, beta, oSeq, diGammaDenom);
 		}
 		return gamma;
 	}
