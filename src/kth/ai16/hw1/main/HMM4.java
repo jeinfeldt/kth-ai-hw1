@@ -25,9 +25,15 @@ public class HMM4 {
 		io.flush();
 		// output
 		HMM myHmm = new HMM(pi, a, b);
-		myHmm.train(oSeq, 350, Double.NEGATIVE_INFINITY);
-		System.out.println(myHmm.getTransition());
-		System.out.println(myHmm.getEmission());
+		myHmm.train(oSeq, 415, Double.NEGATIVE_INFINITY);
+		Matrix transition = myHmm.getTransition();
+		Matrix emission = myHmm.getEmission();
+		System.err.println("Transition");
+		System.out.println(transition);
+		System.err.println(transition.show());
+		System.err.println("Emission");
+		System.out.println(emission);
+		System.err.println(emission.show());
 		io.close();
 	}
 	public static Matrix readMatrix(Kattio io){

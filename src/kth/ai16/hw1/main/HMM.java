@@ -14,6 +14,7 @@ public class HMM {
 	private Matrix a;
 	private Matrix b;
 	private double[] scaleValues;
+	private int numStates;
 	
 	/**
 	 * 
@@ -25,6 +26,7 @@ public class HMM {
 		pi = initialProbability;
 		a = transitionMatrix;
 		b = observationMatrix;
+		numStates = a.getRows();
 	}
 	
 	/**
@@ -92,7 +94,6 @@ public class HMM {
 	 */
 	public int [] decode(int [] oSeq){
 		// init calculation helpers
-		int numStates = a.getRows();
 		int [][] indices = new int[oSeq.length][numStates];
 		for(int i=0; i<indices.length; i++){
 			Arrays.fill(indices[i], -1);
@@ -139,7 +140,6 @@ public class HMM {
 	public void train(int [] oSeq, int maxIters, double oldLog){
 		
 		double oldLogProb = oldLog;
-		int numStates = a.getRows();
 		Matrix alpha = forwardPropability(oSeq);
 		Matrix beta = backwardProbability(oSeq);
 		int T = oSeq.length;
@@ -208,7 +208,6 @@ public class HMM {
 	 * @return double likelihood
 	 */
 	private Matrix forwardPropability(int[] oSeq){
-		int numStates = a.getColumns();
 		Matrix alpha = new Matrix(oSeq.length, numStates);
 		scaleValues = new double[oSeq.length]; 
 		double scale = 0.0;
@@ -258,7 +257,6 @@ public class HMM {
 		if(scaleValues == null){
 			forwardPropability(oSeq);
 		}
-		int numStates = a.getRows();
 		Matrix beta = new Matrix(oSeq.length, numStates);
 		// initialisation
 		for(int i=0; i<numStates; i++){
