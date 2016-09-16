@@ -137,7 +137,7 @@ public class HMM {
 	 * @param maxIters Max number of iterations for training
 	 * @param oldLog Logarithmic threshold, initialise with negative infinity
 	 */
-	public void train(int [] oSeq, int maxIters, double oldLog){
+	public void train(int [] oSeq, int maxIters, double epsilon, double oldLog){
 		
 		double oldLogProb = oldLog;
 		Matrix alpha = forwardPropability(oSeq);
@@ -185,9 +185,9 @@ public class HMM {
 			logProb += Math.log(1.0/scaleValues[t]);
 		}
 		logProb = -logProb;
-		if(maxIters >= 0 && logProb > oldLogProb){
+		if(maxIters >= 0 && Math.pow((oldLogProb - logProb), 2)>epsilon){
 			oldLogProb = logProb;
-			train(oSeq, maxIters-1, oldLogProb);
+			train(oSeq, maxIters-1, epsilon, oldLogProb);
 		}
 	}
 	
