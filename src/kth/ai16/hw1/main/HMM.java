@@ -5,7 +5,7 @@ import java.util.Arrays;
 /**
  * Represents a Hidden Markov Model with capability to
  * calculate probability for hidden states based on observations
- * @author jöric
+ * @author Eric Groz, Jörg Einfeldt
  *
  */
 public class HMM {
@@ -17,10 +17,10 @@ public class HMM {
 	private int numStates;
 	
 	/**
-	 * 
-	 * @param initialProbability
-	 * @param transitionMatrix
-	 * @param observationMatrix
+	 * Initialise Hidden Markov Model with given matrices.
+	 * @param initialProbability Initial Probabilities Vector
+	 * @param transitionMatrix Matrix containing probabilities to transfer from one state to another
+	 * @param observationMatrix Matrix containing probabilities to be in state and make a certain observation 
 	 */
 	public HMM(Matrix initialProbability, Matrix transitionMatrix, Matrix observationMatrix){
 		pi = initialProbability;
@@ -88,7 +88,7 @@ public class HMM {
 	}
 	
 	/**
-	 * Returns the most likely sequence of states based on given observation sequence
+	 * Returns the most likely sequence of states based on given observation sequence, uses viterbi algorithm.
 	 * @param oSeq sequence of observations
 	 * @return sequence of states
 	 */
@@ -133,9 +133,10 @@ public class HMM {
 	
 	/**
 	 * Train current HMM model and improve parameters.
-	 * @param oSeq Sequence of observations for training
-	 * @param maxIters Max number of iterations for training
-	 * @param oldLog Logarithmic threshold, initialise with negative infinity
+	 * @param oSeq - observation sequence for training
+	 * @param maxIters - maximung number of iterations (to avoid deadlocks)
+	 * @param epsilon - threshold to stop iteration
+	 * @param oldLog - logarithmic sum of scalevalues, init with negative infinity
 	 */
 	public void train(int [] oSeq, int maxIters, double epsilon, double oldLog){
 		
@@ -191,23 +192,35 @@ public class HMM {
 		}
 	}
 	
-	
+	/**
+	 * Gets current transition matrix A
+	 * @return Transition Matrix A
+	 */
 	public Matrix getTransition(){
 		return this.a;
 	}
 	
+	/**
+	 * Gets current Emission Matrix B
+	 * @return Emission Matrix B
+	 */
 	public Matrix getEmission(){
 		return this.b;
 	}
 	
+	/**
+	 * Gets current initial Vector pi
+	 * @return Initial Vector pi
+	 */
 	public Matrix getInitial(){
 		return this.pi;
 	}
 	
 	/**
-	 * Returns the likelihood of given observation sequence
-	 * @param observationSequence sequence of observations
-	 * @return double likelihood
+	 * Calcualtes alpha matrix for forward propabilities. This procedure estimates iteratively 
+	 * the probability to be in a certain state at time t and having observed the observation sequence up to time t.
+	 * @param oSeq Observation sequence for forward probabilities
+	 * @return Matrix containing scaled alphas
 	 */
 	private Matrix forwardPropability(int[] oSeq){
 		Matrix alpha = new Matrix(oSeq.length, numStates);
@@ -246,14 +259,11 @@ public class HMM {
 		return alpha;
 	}	
 	
-	/** 
-	 * Calculates backward probability matrix based on squence of obervations
-	 * and possible states of the model with beta-pass (backward) algorithm
-	 * Beta(i,j): stores the probability of observing the rest of the sequence after time step i 
-	 * given that at time step i we are in state k in the HMM 
-	 * @param oSeq
-	 * @param numStates
-	 * @return beta matrix
+	/**
+	 * Calcualtes beta matrix for backward propabilities. This procedure estimates iteratively 
+	 * the probability to be in a certain state at time t and having observed all future observations till T.
+	 * @param oSeq Observation sequence for backward probabilities
+	 * @return Matrix containing scaled betas
 	 */
 	private Matrix backwardProbability(int [] oSeq){
 		if(scaleValues == null){
@@ -276,12 +286,9 @@ public class HMM {
 		}
 		return beta;
 	}
-	
+
 	/**
-	 * 
-	 * @param o
-	 * @param k
-	 * @return
+	 * Returns 1 if o equals k otherwise 0
 	 */
 	private int indicator(int o, int k){
 		if(o == k){
@@ -290,8 +297,10 @@ public class HMM {
 		return 0;
 	}
 	
+
 	/**
-	 * 
+	 * Calculates diGamma value. Probability to be in state i at timestep t and to be in state j
+	 * at timestep t+1.
 	 * @param t
 	 * @param i
 	 * @param j
@@ -299,7 +308,7 @@ public class HMM {
 	 * @param beta
 	 * @param oSeq
 	 * @param diGammaDenom
-	 * @return
+	 * @return DiGamma value
 	 */
 	private double calculateDiGamma(int t, int i, int j, Matrix alpha, Matrix beta, int [] oSeq, double diGammaDenom){
 		double diGammaNum = 0.0;
@@ -312,7 +321,8 @@ public class HMM {
 	}
 	
 	/**
-	 * 
+ 	 * Calculates gamma value. Probability to be in state i at timestep t and to be in state j
+	 * at timestep t+1.
 	 * @param t
 	 * @param i
 	 * @param alpha
@@ -330,6 +340,12 @@ public class HMM {
 		return gamma;
 	}
 	
+	/**
+	 * Save divide method, returns 0 if numerator is 0.
+	 * @param num numerator
+	 * @param denom denominator
+	 * @return 0 if num == 0 else num divided by denom
+	 */
 	private double divide(double num, double denom){
 		if(num == 0){
 			return 0;
