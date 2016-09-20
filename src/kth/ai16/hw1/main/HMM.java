@@ -15,6 +15,8 @@ public class HMM {
 	private Matrix b;
 	private double[] scaleValues;
 	private int numStates;
+	private int numIterations;
+	private int numObservations;
 	
 	/**
 	 * Initialise Hidden Markov Model with given matrices.
@@ -27,6 +29,8 @@ public class HMM {
 		a = transitionMatrix;
 		b = observationMatrix;
 		numStates = a.getRows();
+		numIterations = 0;
+		numObservations = 0;
 	}
 	
 	/**
@@ -141,6 +145,7 @@ public class HMM {
 	public void train(int [] oSeq, int maxIters, double epsilon, double oldLog){
 		
 		double oldLogProb = oldLog;
+		numIterations += 1;
 		Matrix alpha = forwardPropability(oSeq);
 		Matrix beta = backwardProbability(oSeq);
 		int T = oSeq.length;
@@ -214,6 +219,10 @@ public class HMM {
 	 */
 	public Matrix getInitial(){
 		return this.pi;
+	}
+	
+	public int getNumIterations(){
+		return numIterations;
 	}
 	
 	/**
